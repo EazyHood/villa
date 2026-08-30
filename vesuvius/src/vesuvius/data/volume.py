@@ -735,8 +735,10 @@ class Volume:
             
             if self.verbose:
                 print(f"Successfully opened zarr store: {data}")
-                print(f"Shape: {data.shape}, Dtype: {data.dtype}")
-                
+                # A multiscale store opens as a Group, which has no shape/dtype.
+                if hasattr(data, 'shape'):
+                    print(f"Shape: {data.shape}, Dtype: {data.dtype}")
+
             return data
         except Exception as e:
             if self.verbose:
@@ -777,7 +779,8 @@ class Volume:
             segment_id_str = segment_id_str[:-5]
         # Construct ink label path
         inklabel_filename = f"{segment_id_str}_inklabels.png"
-        inklabel_url = os.path.join(parent_url, inklabel_filename)
+        # os.path.join uses a backslash on Windows, which the data server 404s.
+        inklabel_url = f"{parent_url}/{inklabel_filename}"
 
         if self.verbose:
             print(f"Attempting to load ink label from: {inklabel_url}")
